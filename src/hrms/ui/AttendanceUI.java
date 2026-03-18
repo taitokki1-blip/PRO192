@@ -64,40 +64,58 @@ public class AttendanceUI {
     // ── Update ────────────────────────────────────────────────
 
     private void updateAttendance() {
-        System.out.println("\n--- Update Attendance ---");
-        System.out.println("(Press Enter to keep current value)");
-        try {
-            String    empId  = InputUtil.readAlphanumeric("Employee ID           : ");
-            LocalDate date   = InputUtil.readDate("Date (yyyy-MM-dd)     : ");
+    System.out.println("\n--- Update Attendance ---");
+    try {
+        String    empId = InputUtil.readAlphanumeric("Employee ID      : ");
+        LocalDate date  = InputUtil.readDate("Date (yyyy-MM-dd): ");
 
-            // optional status
-            String status = null;
-            System.out.println("  Current status options: Present / Absent / Leave");
-            String rawStatus = InputUtil.readOptional("New Status (Enter to keep): ");
-            if (!rawStatus.isEmpty()) {
-                if (!Attendance.isValidStatus(rawStatus)) {
-                    throw new InvalidAttendanceStatusException(rawStatus);
-                }
-                status = rawStatus.substring(0,1).toUpperCase() + rawStatus.substring(1).toLowerCase();
-            }
-
-            // optional overtime
-            Double ot = null;
-            String rawOt = InputUtil.readOptional("New Overtime Hours (Enter to keep): ");
-            if (!rawOt.isEmpty()) {
-                ot = Double.parseDouble(rawOt);
-            }
-
-            service.updateAttendance(empId, date, status, ot);
-            System.out.println("[SUCCESS] Attendance updated.");
-
-        } catch (EmployeeNotFoundException | InvalidAttendanceStatusException
-                 | InvalidInputException e) {
-            System.out.println("[FAIL] " + e.getMessage());
-        } catch (NumberFormatException e) {
-            System.out.println("[FAIL] Invalid overtime hours value.");
+        Attendance current = service.getRecord(empId, date);
+        if (current == null) {
+            System.out.println("[FAIL] No attendance record found for "
+                + empId + " on " + date + ".");
+            return;
         }
+        System.out.println("-----------------------------------------------------------------");
+        System.out.println("  (Press Enter to keep current value)");
+        System.out.println("Current: Status = " + current.getStatus());
+
+        String status = null;
+        System.out.println("  1. Present  |  2. Absent  |  3. Leave  |  Enter = keep current");
+    while (true) {
+        System.out.print("  New Status: ");
+        String rawStatus = InputUtil.readOptional(""); // đọc input
+        if (rawStatus == null || rawStatus.isEmpty()) {
+            break; // giữ nguyên
+        }
+        if ("1".equals(rawStatus)) { status = "Present"; break; }
+        if ("2".equals(rawStatus)) { status = "Absent";  break; }
+        if ("3".equals(rawStatus)) { status = "Leave";   break; }
+        System.out.println("  [!] Please enter 1, 2, 3, or press Enter to keep.");
     }
+    
+        System.out.println("OT Hours =" + current.getOvertimeHours());
+        Double ot = null;
+        String rawOt = InputUtil.readOptional(
+            "  New OT Hours: ");
+        if (rawOt != null && !rawOt.isEmpty()) {
+            double parsedOt = Double.parseDouble(rawOt);
+            if (parsedOt < 0)
+                throw new InvalidInputException("Overtime hours cannot be negative.");
+            if (parsedOt > 10)
+                throw new InvalidInputException("Overtime hours cannot exceed 10.");
+            ot = parsedOt;
+        }
+
+        service.updateAttendance(empId, date, status, ot);
+        System.out.println("[SUCCESS] Attendance updated.");
+
+    } catch (EmployeeNotFoundException | InvalidAttendanceStatusException
+             | InvalidInputException e) {
+        System.out.println("[FAIL] " + e.getMessage());
+    } catch (NumberFormatException e) {
+        System.out.println("[FAIL] Invalid overtime hours. Please enter a number.");
+    }
+}
 
     // ── View History ──────────────────────────────────────────
 

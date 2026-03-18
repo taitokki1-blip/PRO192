@@ -90,7 +90,10 @@ public class AttendanceService {
         }
         persist();
     }
-
+    
+    public Attendance getRecord(String employeeId, LocalDate date) {
+        return attendanceMap.get(key(employeeId, date));
+    }
     // ── Queries ───────────────────────────────────────────────
 
     /** All attendance records for one employee, sorted by date. */

@@ -98,6 +98,7 @@ public class SalaryService {
         for (String k : keysToRemove) {
             salaryMap.remove(k);
         }
+        persist();
     }
 
     // ── View ──────────────────────────────────────────────────
