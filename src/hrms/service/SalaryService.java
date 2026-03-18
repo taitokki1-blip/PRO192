@@ -3,6 +3,7 @@ package hrms.service;
 import hrms.exception.EmployeeNotFoundException;
 import hrms.model.Employee;
 import hrms.model.SalaryRecord;
+import hrms.util.FileUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +24,11 @@ public class SalaryService {
                          AttendanceService attendanceService) {
         this.employeeService   = employeeService;
         this.attendanceService = attendanceService;
+        
+        List<SalaryRecord> loaded = FileUtil.loadSalaryRecords();
+        for (SalaryRecord sr : loaded) {
+        salaryMap.put(sr.getEmployeeId() + "_" + sr.getMonth() + "_" + sr.getYear(), sr);
+        }
     }
 
     // ── Calculate ─────────────────────────────────────────────
@@ -48,7 +54,7 @@ public class SalaryService {
         double total = emp.calculateSalary(month, year, workDays, absentDays, overtimeHrs);
 
         // Derive OT pay and deduction for the record display
-        double otRate       = emp.getClass().getSimpleName().equals("FullTimeEmployee") ? 80_000 : 50_000;
+        double otRate = emp.getOtRate();
         double overtimePay  = overtimeHrs * otRate;
         double deduction    = absentDays  * 100_000.0;
 
@@ -57,6 +63,7 @@ public class SalaryService {
             emp.getBasicSalary(), overtimePay, deduction, total);
 
         salaryMap.put(employeeId + "_" + month + "_" + year, sr);
+        persist();
         return sr;
     }
 
@@ -104,4 +111,9 @@ public class SalaryService {
             .filter(sr -> sr.getMonth() == month && sr.getYear() == year)
             .collect(Collectors.toList());
     }
+    
+    
+    private void persist() {
+    FileUtil.saveSalaryRecords(new ArrayList<>(salaryMap.values()));
+}
 }

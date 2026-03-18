@@ -3,7 +3,6 @@ package hrms.util;
 import hrms.model.*;
 
 import java.io.*;
-import java.nio.file.*;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -16,7 +15,7 @@ public class FileUtil {
     private static final String DATA_DIR       = "data/";
     private static final String EMPLOYEE_FILE  = DATA_DIR + "employees.csv";
     private static final String ATTENDANCE_FILE= DATA_DIR + "attendance.csv";
-
+    private static final String SALARY_FILE = DATA_DIR + "salary_records.csv";
     static {
         // Ensure data directory exists
         new File(DATA_DIR).mkdirs();
@@ -117,4 +116,50 @@ public class FileUtil {
         }
         return list;
     }
-}
+    
+    
+    // ══════════════════════════════════════════════════════════
+    //  SALARY
+    // ══════════════════════════════════════════════════════════
+    
+    public static void saveSalaryRecords(List<SalaryRecord> records) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(SALARY_FILE))) {
+            pw.println("employeeId,employeeName,month,year,basicSalary,overtimePay,absenceDeduction,totalSalary");
+            for (SalaryRecord sr : records) {
+                pw.printf("%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f%n",
+                    sr.getEmployeeId(), sr.getEmployeeName(),
+                    sr.getMonth(), sr.getYear(),
+                    sr.getBasicSalary(), sr.getOvertimePay(),
+                    sr.getAbsenceDeduction(), sr.getTotalSalary());
+            }
+        } catch (IOException ex) {
+            System.out.println("[ERROR] Cannot save salary records: " + ex.getMessage());
+        }
+    }
+
+    public static List<SalaryRecord> loadSalaryRecords() {
+        List<SalaryRecord> list = new ArrayList<>();
+        File f = new File(SALARY_FILE);
+        if (!f.exists()) return list;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String line = br.readLine(); // skip header
+            while ((line = br.readLine()) != null) {
+                String[] p = line.split(",", -1);
+                if (p.length < 8) continue;
+                list.add(new SalaryRecord(
+                    p[0].trim(), p[1].trim(),
+                    Integer.parseInt(p[2].trim()),
+                    Integer.parseInt(p[3].trim()),
+                    Double.parseDouble(p[4].trim()),
+                    Double.parseDouble(p[5].trim()),
+                    Double.parseDouble(p[6].trim()),
+                    Double.parseDouble(p[7].trim())
+                ));
+            }
+        } catch (IOException | NumberFormatException ex) {
+            System.out.println("[ERROR] Cannot load salary records: " + ex.getMessage());
+        }
+        return list;
+    }
+    }

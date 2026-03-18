@@ -60,6 +60,9 @@ public abstract class Employee {
 
     /** Return "FullTime" or "PartTime" — used when saving to file */
     public abstract String getEmployeeType();
+    public abstract double getOtRate();
+    protected static final double ABSENCE_FEE = 100_000;
+
 
     @Override
     public String toString() {
