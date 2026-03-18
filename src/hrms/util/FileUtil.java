@@ -31,7 +31,7 @@ public class FileUtil {
             // header
             pw.println("type,id,name,department,jobTitle,joinDate,basicSalary,status");
             for (Employee e : employees) {
-                pw.printf("%s,%s,%s,%s,%s,%s,%.2f,%s%n",
+                pw.printf("%s,%s,\"%s\",\"%s\",\"%s\",%s,%.2f,%s%n",
                     e.getEmployeeType(), e.getId(), e.getName(),
                     e.getDepartment(), e.getJobTitle(), e.getJoinDate(),
                     e.getBasicSalary(), e.getStatus());
@@ -50,13 +50,13 @@ public class FileUtil {
         try (BufferedReader br = new BufferedReader(new FileReader(f))) {
             String line = br.readLine(); // skip header
             while ((line = br.readLine()) != null) {
-                String[] p = line.split(",", -1);
+                String[] p = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
                 if (p.length < 8) continue;
                 String type       = p[0].trim();
                 String id         = p[1].trim();
-                String name       = p[2].trim();
-                String dept       = p[3].trim();
-                String title      = p[4].trim();
+                String name       = p[2].trim().replaceAll("^\"|\"$", "");
+                String dept       = p[3].trim().replaceAll("^\"|\"$", "");
+                String title      = p[4].trim().replaceAll("^\"|\"$", "");
                 LocalDate join    = LocalDate.parse(p[5].trim());
                 double salary     = Double.parseDouble(p[6].trim());
                 String status     = p[7].trim();
@@ -126,7 +126,7 @@ public class FileUtil {
         try (PrintWriter pw = new PrintWriter(new FileWriter(SALARY_FILE))) {
             pw.println("employeeId,employeeName,month,year,basicSalary,overtimePay,absenceDeduction,totalSalary");
             for (SalaryRecord sr : records) {
-                pw.printf("%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f%n",
+                pw.printf("%s,\"%s\",%d,%d,%.2f,%.2f,%.2f,%.2f%n",
                     sr.getEmployeeId(), sr.getEmployeeName(),
                     sr.getMonth(), sr.getYear(),
                     sr.getBasicSalary(), sr.getOvertimePay(),
@@ -145,10 +145,10 @@ public class FileUtil {
         try (BufferedReader br = new BufferedReader(new FileReader(f))) {
             String line = br.readLine(); // skip header
             while ((line = br.readLine()) != null) {
-                String[] p = line.split(",", -1);
+                String[] p = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
                 if (p.length < 8) continue;
                 list.add(new SalaryRecord(
-                    p[0].trim(), p[1].trim(),
+                    p[0].trim(), p[1].trim().replaceAll("^\"|\"$", ""),
                     Integer.parseInt(p[2].trim()),
                     Integer.parseInt(p[3].trim()),
                     Double.parseDouble(p[4].trim()),

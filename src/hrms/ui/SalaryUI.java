@@ -92,7 +92,7 @@ public class SalaryUI {
     private void exportReport() {
         System.out.println("\n--- Export Salary Report ---");
         int month = InputUtil.readIntInRange("Month (1-12) : ", 1, 12);
-        int year  = InputUtil.readYear("Year         : ");  // Point 7
+        int year  = InputUtil.readYear("Year         : ");  
 
         List<SalaryRecord> records = service.getAllForMonth(month, year);
         if (records.isEmpty()) {
@@ -103,8 +103,7 @@ public class SalaryUI {
 
         String filename = "data/salary_report_" + year + "_"
             + String.format("%02d", month) + ".csv";
-        try {
-            java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(filename));
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(filename))){
             pw.println("EmployeeID,Name,Month,Year,BasicSalary,OvertimePay,Deduction,TotalSalary");
             for (SalaryRecord sr : records) {
                 pw.printf("%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f%n",
@@ -113,7 +112,6 @@ public class SalaryUI {
                     sr.getBasicSalary(), sr.getOvertimePay(),
                     sr.getAbsenceDeduction(), sr.getTotalSalary());
             }
-            pw.close();
             System.out.println("[SUCCESS] Report exported to: " + filename);
         } catch (java.io.IOException e) {
             System.out.println("[FAIL] Cannot write report: " + e.getMessage());
